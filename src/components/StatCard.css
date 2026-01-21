@@ -1,0 +1,120 @@
+.stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.stat-card__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.stat-card--ingreso .stat-card__icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.stat-card--egreso .stat-card__icon {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.stat-card--balance .stat-card__icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.stat-card__label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.stat-card__value-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stat-card__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: #1f2937;
+}
+
+.stat-card--ingreso .stat-card__value {
+  color: #059669;
+}
+
+.stat-card--egreso .stat-card__value {
+  color: #dc2626;
+}
+
+.stat-card--balance .stat-card__value {
+  color: #1f2937;
+}
+
+.stat-card__value--negative {
+  color: #dc2626 !important;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .stat-card {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .stat-card__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stat-card__icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .stat-card__label {
+    font-size: 0.8rem;
+  }
+
+  .stat-card__value {
+    font-size: 1.4rem;
+  }
+}
