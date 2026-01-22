@@ -37,7 +37,7 @@ export function StatCard({ variant, label, value }: StatCardProps) {
         <span className={`stat-card__value ${isNegative ? 'stat-card__value--negative' : ''}`}>
           {variant === 'ingreso' && '+'}
           {variant === 'egreso' && '-'}
-          ${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          ${Math.abs(Number(value)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       </div>
     </div>

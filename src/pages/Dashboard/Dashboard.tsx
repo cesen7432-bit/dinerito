@@ -1,50 +1,98 @@
-import { useMemo, useState } from 'react'
-import { useAuthStore, useMovementsStore, useTotals } from '../../stores'
-import { useCategories } from '../../hooks/useCategories'
+import { useEffect, useMemo, useState } from 'react'
+import { useAuthStore, useMovementsStore, useTotals, useCategoriesStore } from '../../stores'
 import { Card, StatCard, MovementRow, CategoryChip, AddMovementModal, ReceiptModal, UserMenu } from '../../components'
-import type { Movement } from '../../types'
+import { tokenManager } from '../../services/api'
+import type { Movement, Category } from '../../types'
 import './Dashboard.css'
 
 export default function Dashboard() {
   const user = useAuthStore(state => state.user)
   const logout = useAuthStore(state => state.logout)
+
   const movements = useMovementsStore(state => state.movements)
+  const fetchMovements = useMovementsStore(state => state.fetchMovements)
   const addMovement = useMovementsStore(state => state.addMovement)
   const deleteMovement = useMovementsStore(state => state.deleteMovement)
+  const movementsLoading = useMovementsStore(state => state.isLoading)
   const totals = useTotals()
-  const { categories, editing, addCategory, renameCategory, startEditing, cancelEditing } = useCategories()
 
-  const [filter, setFilter] = useState<string>('Todas')
+  const categories = useCategoriesStore(state => state.categories)
+  const fetchCategories = useCategoriesStore(state => state.fetchCategories)
+  const addCategory = useCategoriesStore(state => state.addCategory)
+  const updateCategory = useCategoriesStore(state => state.updateCategory)
+  const categoriesLoading = useCategoriesStore(state => state.isLoading)
+
+  const [filter, setFilter] = useState<number | 'Todas'>('Todas')
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [editValue, setEditValue] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null)
 
+  useEffect(() => {
+    // Solo hacer fetch si hay token disponible
+    const token = tokenManager.getToken()
+    console.log('[Dashboard] Checking token on mount:', token ? 'EXISTS' : 'NO TOKEN')
+    if (token) {
+      fetchCategories()
+      fetchMovements()
+    }
+  }, [fetchCategories, fetchMovements])
+
+  // Recargar datos cuando el usuario cambie (después del login)
+  useEffect(() => {
+    if (user) {
+      const token = tokenManager.getToken()
+      console.log('[Dashboard] User changed, token:', token ? 'EXISTS' : 'NO TOKEN')
+      if (token) {
+        fetchCategories()
+        fetchMovements()
+      }
+    }
+  }, [user, fetchCategories, fetchMovements])
+
   const filtered = useMemo(() => {
     if (filter === 'Todas') return movements
-    return movements.filter(m => (m.category || 'General') === filter)
+    return movements.filter(m => m.category_id === filter)
   }, [filter, movements])
 
-  const handleAddOrEditCategory = () => {
+  const categoryNames = useMemo(() => {
+    return categories.map(c => c.name)
+  }, [categories])
+
+  const handleAddOrEditCategory = async () => {
     const name = editValue.trim()
     if (!name) return
 
-    if (editing) {
-      renameCategory(editing, name)
-      if (filter === editing) setFilter(name)
+    if (editingCategory) {
+      await updateCategory(editingCategory.id, name)
+      setEditingCategory(null)
     } else {
-      addCategory(name)
+      await addCategory(name)
     }
     setEditValue('')
   }
 
-  const handleStartEdit = (c: string) => {
-    startEditing(c)
-    setEditValue(c)
+  const handleStartEdit = (category: Category) => {
+    setEditingCategory(category)
+    setEditValue(category.name)
   }
 
   const handleCancelEdit = () => {
-    cancelEditing()
+    setEditingCategory(null)
     setEditValue('')
+  }
+
+  const handleAddMovement = async (movement: Omit<Movement, 'id'> & { category_id: number }) => {
+    await addMovement(movement)
+  }
+
+  const handleDeleteMovement = async (id: number) => {
+    await deleteMovement(id)
+  }
+
+  const getCategoryIdByName = (name: string): number => {
+    const category = categories.find(c => c.name === name)
+    return category?.id || categories[0]?.id || 0
   }
 
   return (
@@ -72,18 +120,19 @@ export default function Dashboard() {
           <div className="category-edit">
             <input
               type="text"
-              placeholder={editing ? 'Renombrar categoria' : 'Nueva categoria'}
+              placeholder={editingCategory ? 'Renombrar categoria' : 'Nueva categoria'}
               value={editValue}
               onChange={e => setEditValue(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter') handleAddOrEditCategory()
                 if (e.key === 'Escape') handleCancelEdit()
               }}
+              disabled={categoriesLoading}
             />
-            <button type="button" onClick={handleAddOrEditCategory}>
-              {editing ? 'Guardar' : 'Agregar'}
+            <button type="button" onClick={handleAddOrEditCategory} disabled={categoriesLoading}>
+              {editingCategory ? 'Guardar' : 'Agregar'}
             </button>
-            {editing && (
+            {editingCategory && (
               <button type="button" className="btn-cancel" onClick={handleCancelEdit}>
                 Cancelar
               </button>
@@ -98,10 +147,10 @@ export default function Dashboard() {
           />
           {categories.map(c => (
             <CategoryChip
-              key={c}
-              label={c}
-              active={filter === c}
-              onClick={() => setFilter(c)}
+              key={c.id}
+              label={c.name}
+              active={filter === c.id}
+              onClick={() => setFilter(c.id)}
               onDoubleClick={() => handleStartEdit(c)}
             />
           ))}
@@ -118,7 +167,11 @@ export default function Dashboard() {
             + Nuevo
           </button>
         </div>
-        {filtered.length === 0 ? (
+        {movementsLoading ? (
+          <div className="loading-state">
+            <p>Cargando movimientos...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="empty-state">
             <p>No hay movimientos en esta categoria</p>
           </div>
@@ -129,7 +182,7 @@ export default function Dashboard() {
                 key={m.id}
                 movement={m}
                 onClick={setSelectedMovement}
-                onDelete={deleteMovement}
+                onDelete={handleDeleteMovement}
               />
             ))}
           </ul>
@@ -138,8 +191,11 @@ export default function Dashboard() {
 
       {showAddModal && (
         <AddMovementModal
-          categories={categories}
-          onAdd={addMovement}
+          categories={categoryNames}
+          onAdd={(movement) => {
+            const categoryId = getCategoryIdByName(movement.category || categoryNames[0])
+            handleAddMovement({ ...movement, category_id: categoryId })
+          }}
           onClose={() => setShowAddModal(false)}
         />
       )}

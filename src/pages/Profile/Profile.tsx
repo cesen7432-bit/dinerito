@@ -7,14 +7,23 @@ import './Profile.css'
 export default function Profile() {
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
+  const updateUsername = useAuthStore(state => state.updateUsername)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const error = useAuthStore(state => state.error)
+
   const [name, setName] = useState(user?.name || '')
-  const [email, setEmail] = useState(user?.email || '')
+  const [email] = useState(user?.email || '')
   const [saved, setSaved] = useState(false)
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    if (isLoading || !name.trim()) return
+
+    const success = await updateUsername(name.trim())
+    if (success) {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    }
   }
 
   return (
@@ -45,31 +54,26 @@ export default function Profile() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Tu nombre"
+              disabled={isLoading}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Correo electrónico</label>
+            <label htmlFor="email">Correo electronico</label>
             <input
               id="email"
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              disabled
               placeholder="tu@email.com"
             />
+            <span className="form-hint">El correo no puede ser modificado</span>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="phone">Teléfono</label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="+1 234 567 8900"
-            />
-          </div>
+          {error && <p className="error-message">{error}</p>}
 
-          <button type="submit" className="btn-save">
-            {saved ? '✓ Guardado' : 'Guardar cambios'}
+          <button type="submit" className="btn-save" disabled={isLoading}>
+            {isLoading ? 'Guardando...' : saved ? 'Guardado' : 'Guardar cambios'}
           </button>
         </form>
       </Card>

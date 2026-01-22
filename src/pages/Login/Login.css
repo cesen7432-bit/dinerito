@@ -83,3 +83,26 @@
   font-size: 0.8rem;
   margin: 0;
 }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.link-btn:hover {
+  color: var(--color-primary-dark);
+}
+
+.error-message {
+  color: var(--color-danger, #dc3545);
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: var(--radius-md);
+}

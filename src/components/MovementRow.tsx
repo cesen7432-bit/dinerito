@@ -51,7 +51,7 @@ export function MovementRow({ movement, onClick, onDelete }: MovementRowProps) {
       </div>
       <div className="movement-row__right">
         <strong className={`movement-row__amount movement-row__amount--${type}`}>
-          {type === 'ingreso' ? '+' : '-'}${amount.toFixed(2)}
+          {type === 'ingreso' ? '+' : '-'}${Number(amount).toFixed(2)}
         </strong>
         {onDelete && (
           <button

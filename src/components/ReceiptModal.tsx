@@ -56,7 +56,7 @@ export function ReceiptModal({ movement, onClose }: ReceiptModalProps) {
           <div className={`receipt__amount receipt__amount--${type}`}>
             <span className="receipt__amount-sign">{isIngreso ? '+' : '-'}</span>
             <span className="receipt__amount-currency">$</span>
-            <span className="receipt__amount-value">{amount.toFixed(2)}</span>
+            <span className="receipt__amount-value">{Number(amount).toFixed(2)}</span>
           </div>
 
           {/* Linea divisoria con circulos */}

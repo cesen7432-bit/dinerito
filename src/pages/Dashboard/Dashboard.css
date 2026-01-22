@@ -189,6 +189,16 @@
   color: var(--color-gray-500);
 }
 
+.loading-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.loading-state p {
+  margin: 0;
+  color: var(--color-gray-500);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .dashboard-header {
